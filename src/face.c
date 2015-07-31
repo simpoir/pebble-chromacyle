@@ -1,24 +1,8 @@
 #include <pebble.h>
+#include "battery.h"
 
-static Window* s_main_window;
-static TextLayer* s_time_layer;
-static GPath* s_bg_rect_ptr;
-static GPath* s_battery_path_ptr;
-
-/*
-void draw_battery(GRect position) {
-  BatteryChargeState state = battery_state_service_peek();
-
-  GColor color = GColorWhite;
-  if (state.charge_percent <= 10) {
-    color = GColorRed;
-  }
-  if (state.is_charging) {
-    color = GColorGreen;
-  }
-}
-*/
-
+static Window* s_main_window = NULL;
+static TextLayer* s_time_layer = NULL;
 
 static void update_time(struct tm* _t, TimeUnits _u) {
   time_t temp = time(NULL);
@@ -29,8 +13,6 @@ static void update_time(struct tm* _t, TimeUnits _u) {
       clock_is_24h_style()? "%H:%M": "%I:%M",
       tick_time);
   text_layer_set_text(s_time_layer, buffer);
-
-  //draw_battery(GRect(5, 5, 25, 25));
 }
 
 void draw_bg(Layer* layer, GContext* ctx) {
@@ -57,10 +39,12 @@ static void main_window_load(Window *window) {
 
   tick_timer_service_subscribe(MINUTE_UNIT, update_time);
   update_time(NULL, 0);
+  layer_add_child(window_get_root_layer(s_main_window), battery_init());
 }
 
 static void main_window_unload(Window *window) {
   text_layer_destroy(s_time_layer);
+  battery_deinit();
 }
 
 static void init() {
