@@ -1,7 +1,7 @@
 {
   "uuid": "34af8864-0b97-429b-ab07-69f0c96e689d",
-  "shortName": "Savrien",
-  "longName": "Make a slow color-changing face, inspired by e17 Savrien",
+  "shortName": "Colorcycle",
+  "longName": "Slowly color-changing face",
   "companyName": "simpoir",
   "versionLabel": "1.0",
   "sdkVersion": "3",

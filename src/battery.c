@@ -1,4 +1,4 @@
-#include <pebble.h>
+#include "battery.h"
 
 static Layer* s_battery_layer = NULL;
 static GPath* s_battery_path = NULL;
@@ -7,7 +7,7 @@ static GPathInfo BATTERY_PATH_INFO = {
   .points = (GPoint[]){{0, 0}, {10, 0}, {10, 2}, {11, 2}, {11, 5}, {10, 5}, {10, 7}, {0, 7}}
 };
 
-void draw_battery(Layer* layer, GContext* ctx) {
+static void draw_battery(Layer* layer, GContext* ctx) {
   BatteryChargeState state = battery_state_service_peek();
 
   GColor color;
