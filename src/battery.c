@@ -21,7 +21,7 @@ static void draw_battery(Layer* layer, GContext* ctx) {
   graphics_context_set_stroke_color(ctx, color);
   graphics_context_set_fill_color(ctx, color);
   gpath_draw_outline(ctx, s_battery_path);
-  int lvl = state.charge_percent/10;
+  short lvl = state.charge_percent/10;
   graphics_fill_rect(ctx, GRect(0, 0, lvl, 7), 0, GCornerNone);
 }
 

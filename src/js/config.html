@@ -1,0 +1,80 @@
+<!doctype HTML>
+<html>
+<head>
+  <style>
+* {
+  background: #444;
+  font-size: 32px;
+  color: #ccc;
+}
+input:first-child + label {
+  border-radius: 25px 0 0 25px;
+  display: block;
+  float: left;
+  border-right: 0;
+}
+label:last-child {
+  border-radius: 0 25px 25px 0;
+  display: block;
+  float: left;
+}
+input[type=radio] {
+  display: none;
+}
+input, label {
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  padding: 5px;
+}
+input:checked + label {
+  background: #888;
+}
+form div {
+  clear: both;
+  padding: 5px;
+}
+  </style>
+</head>
+<body onLoad="on_load()">
+  <form name="configForm" onsubmit="return on_submit()">
+    <div>
+      Show date
+    </div>
+    <div>
+      <input type="radio" name="showdate" value="0" id="showdate_no" checked/>
+      <label for="showdate_no">No</label>
+      <input type="radio" name="showdate" value="1" id="showdate_yes"/>
+      <label for="showdate_yes">Yes</label>
+    </div>
+    <div>
+      Show status indicators
+    </div>
+    <div>
+      <input type="radio" name="showbt" value="0" id="showbt_no"/>
+      <label for="showbt_no">No</label>
+      <input type="radio" name="showbt" value="1" id="showbt_yes" checked/>
+      <label for="showbt_yes">Yes</label>
+    </div>
+    <div>
+      <input type="submit" value="Save"/>
+    </div>
+  </form>
+  <script type="application/javascript">
+function on_load() {
+  var config = JSON.parse(localStorage.config||'{}');
+  configForm.showdate.value = config.date;
+  configForm.showbt.value = config.bt;
+}
+function on_submit() {
+  var result = {
+    date: new Number(configForm.showdate.value),
+    bt: new Number(configForm.showbt.value)
+  };
+  var config = JSON.stringify(result);
+  localStorage.config = config;
+  window.location.href = "pebblejs://close#"+encodeURIComponent(config);
+  return false;
+}
+  </script>
+</body>
+</html>

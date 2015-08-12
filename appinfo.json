@@ -3,12 +3,15 @@
   "shortName": "Colorcycle",
   "longName": "Slowly color-changing face",
   "companyName": "simpoir",
-  "versionLabel": "1.0",
+  "versionLabel": "1.1",
   "sdkVersion": "3",
   "targetPlatforms": ["basalt"],
   "watchapp": {
     "watchface": true
   },
+  "capabilities": [
+    "configurable"
+  ],
   "appKeys": {
     "dummy": 0
   },
