@@ -6,6 +6,14 @@ static Window* s_main_window = NULL;
 static TextLayer* s_time_layer = NULL;
 static GColor bg_color, bg_colorl, bg_colord;
 
+#define KEY_DATE 10
+#define KEY_STATUS 11
+
+static AppSync s_sync;
+static uint8_t s_sync_buffer[32];
+static Layer* s_bluetooth_layer = NULL;
+static Layer* s_battery_layer = NULL;
+
 GColor hsv_to_rgb(float h, float s, float v) {
   float hh, p, q, t, ff;
   int i;
@@ -83,14 +91,43 @@ static void main_window_load(Window *window) {
 
   tick_timer_service_subscribe(MINUTE_UNIT, update_time);
   update_time(NULL, 0);
-  layer_add_child(window_get_root_layer(s_main_window), battery_init());
-  layer_add_child(window_get_root_layer(s_main_window), bluetooth_init());
+  s_bluetooth_layer = bluetooth_init();
+  s_battery_layer = battery_init();
+  layer_add_child(window_get_root_layer(s_main_window), s_battery_layer);
+  layer_add_child(window_get_root_layer(s_main_window), s_bluetooth_layer);
+  if (!persist_read_bool(KEY_STATUS)) {
+    layer_set_hidden(s_battery_layer, true);
+    layer_set_hidden(s_bluetooth_layer, true);
+  }
 }
 
 static void main_window_unload(Window *window) {
   text_layer_destroy(s_time_layer);
   battery_deinit();
   bluetooth_deinit();
+  s_battery_layer = NULL;
+  s_bluetooth_layer = NULL;
+}
+
+static void on_conf_change(const uint32_t key, const Tuple* new_tuple,
+    const Tuple* old_tuple, void* context) {
+  switch(key) {
+    case KEY_DATE:
+      break;
+    case KEY_STATUS:
+      if (s_battery_layer) {
+        bool hide = !new_tuple->value->uint8;
+        persist_write_bool(KEY_STATUS, !hide);
+        layer_set_hidden(s_battery_layer, hide);
+        layer_set_hidden(s_bluetooth_layer, hide);
+      }
+      break;
+  }
+}
+
+static void on_conf_error(DictionaryResult dict_error,
+    AppMessageResult app_message_error, void* context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "problem syncing config");
 }
 
 static void init() {
@@ -102,9 +139,24 @@ static void init() {
   });
 
   window_stack_push(s_main_window, true);
+
+  // Setup AppSync
+  app_message_open(
+      app_message_inbox_size_maximum(),
+      app_message_outbox_size_maximum());
+
+  // start hidden to avoid flicker
+  Tuplet initial_values[] = {
+    TupletInteger(KEY_STATUS, persist_read_bool(KEY_STATUS)),
+    TupletInteger(KEY_DATE, persist_read_bool(KEY_DATE)),
+  };
+  app_sync_init(&s_sync, s_sync_buffer, sizeof(s_sync_buffer), initial_values,
+      ARRAY_LENGTH(initial_values), on_conf_change, on_conf_error, NULL);
+  APP_LOG(APP_LOG_LEVEL_INFO, "started sync");
 }
 
 static void deinit() {
+  app_sync_deinit(&s_sync);
   window_destroy(s_main_window);
 }
 

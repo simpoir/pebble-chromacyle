@@ -13,7 +13,8 @@
     "configurable"
   ],
   "appKeys": {
-    "dummy": 0
+    "KEY_DATE": 10,
+    "KEY_STATUS": 11
   },
   "resources": {
     "media": []

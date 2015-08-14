@@ -62,13 +62,13 @@ form div {
   <script type="application/javascript">
 function on_load() {
   var config = JSON.parse(localStorage.config||'{}');
-  configForm.showdate.value = config.date;
-  configForm.showbt.value = config.bt;
+  configForm.showdate.value = config.KEY_DATE;
+  configForm.showbt.value = config.KEY_STATUS;
 }
 function on_submit() {
   var result = {
-    date: new Number(configForm.showdate.value),
-    bt: new Number(configForm.showbt.value)
+    "KEY_DATE": new Number(configForm.showdate.value),
+    "KEY_STATUS": new Number(configForm.showbt.value)
   };
   var config = JSON.stringify(result);
   localStorage.config = config;
