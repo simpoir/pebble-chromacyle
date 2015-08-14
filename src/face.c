@@ -4,6 +4,7 @@
 
 static Window* s_main_window = NULL;
 static TextLayer* s_time_layer = NULL;
+static TextLayer* s_date_layer = NULL;
 static GColor bg_color, bg_colorl, bg_colord;
 
 #define KEY_DATE 10
@@ -63,6 +64,14 @@ static void update_time(struct tm* t, TimeUnits _u) {
       clock_is_24h_style()? "%H:%M": "%I:%M",
       tick_time);
   text_layer_set_text(s_time_layer, buffer);
+
+  static char d_buf[20];
+  strftime(
+      d_buf, sizeof(d_buf),
+      "%a %b %d",
+      tick_time);
+  text_layer_set_text(s_date_layer, d_buf);
+
   update_bg(tick_time);
 }
 
@@ -76,6 +85,7 @@ static void main_window_load(Window *window) {
   bg_color = GColorBlack; // just be sure it's initialized
   layer_set_update_proc(window_get_root_layer(window), draw_bg);
 
+  // time
   s_time_layer = text_layer_create(GRect(0, 55, 144, 50));
   text_layer_set_background_color(s_time_layer, GColorClear);
   text_layer_set_text_color(s_time_layer, GColorWhite);
@@ -89,12 +99,28 @@ static void main_window_load(Window *window) {
       window_get_root_layer(window),
       text_layer_get_layer(s_time_layer));
 
+  // date
+  s_date_layer = text_layer_create(GRect(0, 100, 144, 50));
+  text_layer_set_background_color(s_date_layer, GColorClear);
+  text_layer_set_text_color(s_date_layer, GColorWhite);
+  text_layer_set_text(s_date_layer, "Foo Bar 42");
+  text_layer_set_font(
+      s_date_layer,
+      fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+  layer_add_child(
+      window_get_root_layer(window),
+      text_layer_get_layer(s_date_layer));
+
   tick_timer_service_subscribe(MINUTE_UNIT, update_time);
   update_time(NULL, 0);
   s_bluetooth_layer = bluetooth_init();
   s_battery_layer = battery_init();
   layer_add_child(window_get_root_layer(s_main_window), s_battery_layer);
   layer_add_child(window_get_root_layer(s_main_window), s_bluetooth_layer);
+  if (!persist_read_bool(KEY_DATE)) {
+    layer_set_hidden((Layer*)s_date_layer, true);
+  }
   if (!persist_read_bool(KEY_STATUS)) {
     layer_set_hidden(s_battery_layer, true);
     layer_set_hidden(s_bluetooth_layer, true);
@@ -103,6 +129,7 @@ static void main_window_load(Window *window) {
 
 static void main_window_unload(Window *window) {
   text_layer_destroy(s_time_layer);
+  text_layer_destroy(s_date_layer);
   battery_deinit();
   bluetooth_deinit();
   s_battery_layer = NULL;
@@ -111,12 +138,16 @@ static void main_window_unload(Window *window) {
 
 static void on_conf_change(const uint32_t key, const Tuple* new_tuple,
     const Tuple* old_tuple, void* context) {
+  bool hide = !new_tuple->value->uint8;
   switch(key) {
     case KEY_DATE:
+      if (s_date_layer) {
+        persist_write_bool(KEY_DATE, !hide);
+        layer_set_hidden((Layer*)s_date_layer, hide);
+      }
       break;
     case KEY_STATUS:
       if (s_battery_layer) {
-        bool hide = !new_tuple->value->uint8;
         persist_write_bool(KEY_STATUS, !hide);
         layer_set_hidden(s_battery_layer, hide);
         layer_set_hidden(s_bluetooth_layer, hide);
